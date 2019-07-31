@@ -6,7 +6,7 @@ Library for creating matcher combinator to compare nested data structures
 _current version:_
 
 ```
-[com.nedap.staffing-solutions/matcher-combinators "1.0.1"]
+[com.nedap.staffing-solutions/matcher-combinators "1.1.0-alpha1"]
 ```
 
 _docs:_
