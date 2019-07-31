@@ -6,12 +6,12 @@ version: 2
 jobs:
   build:
     docker:
-      # specify the version you desire here
-      - image: circleci/clojure:lein-2.9.1-node
+    # specify the version you desire here
+    - image: circleci/clojure:lein-2.9.1-node
 
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
+    # Specify service dependencies here if necessary
+    # CircleCI maintains a library of pre-built images
+    # documented at https://circleci.com/docs/2.0/circleci-images/
 
     working_directory: ~/repo
 
@@ -21,24 +21,66 @@ jobs:
       JVM_OPTS: -Xmx3200m
 
     steps:
+    - checkout
+
+    # Download and cache dependencies
+    - restore_cache:
+        keys:
+        - v1-dependencies-{{ checksum "project.clj" }}
+        # fallback to using the latest cache if no exact match is found
+        - v1-dependencies-
+
+    - run: lein with-profile -dev,+ci deps
+
+    - save_cache:
+        paths:
+        - ~/.m2
+        key: v1-dependencies-{{ checksum "project.clj" }}
+
+    # run clj tests!
+    - run: lein midje
+
+    # run clojurescript tests!
+    - run: lein test-node
+
+  release:
+    docker:
+      - image: circleci/clojure:lein-2.9.1-node
+
+    working_directory: ~/repo
+
+    steps:
+      - run:
+          name: import GPG key
+          command: echo -e "$GPG_KEY_V2" | gpg --import
+
       - checkout
 
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "project.clj" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
+      - run:
+          name: Perform pre-release sanity check
+          command: lein with-profile -dev,+ci run -m nedap.ci.release-workflow.api sanity-check
 
-      - run: lein deps
+      - run:
+          name: release to JFrog
+          command: lein deploy
 
-      - save_cache:
-          paths:
-            - ~/.m2
-          key: v1-dependencies-{{ checksum "project.clj" }}
-
-      # run clj tests!
-      - run: lein midje
-
-      # run clojurescript tests!
-      - run: lein test-node
+workflows:
+  version: 2
+  CircleCI:
+    jobs:
+      - build:
+          context: JFrog
+          filters:
+            branches:
+              only: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+(-alpha\d+)?$/
+      - release:
+          context: JFrog
+          requires:
+            - build
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+(-alpha\d+)?$/
