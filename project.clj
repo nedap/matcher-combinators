@@ -1,10 +1,18 @@
-(defproject nubank/matcher-combinators "1.0.1"
+;; Please don't bump the library version by hand - use ci.release-workflow instead.
+(defproject com.nedap.staffing-solutions/matcher-combinators "1.0.1"
   :description "Library for creating matcher combinator to compare nested data structures"
   :url "https://github.com/nubank/matcher-combinators"
   :license {:name "Apache License, Version 2.0"}
 
-  :repositories [["central" {:url "https://repo1.maven.org/maven2/" :snapshots false}]
-                 ["clojars" {:url "https://clojars.org/repo/"}]]
+  :signing {:gpg-key "releases-staffingsolutions@nedap.com"}
+
+  :repositories {"releases" {:url      "https://nedap.jfrog.io/nedap/staffing-solutions/"
+                             :username :env/artifactory_user
+                             :password :env/artifactory_pass}}
+  
+  :repository-auth {#"https://nedap.jfrog\.io/nedap/staffing-solutions/"
+                    {:username :env/artifactory_user
+                     :password :env/artifactory_pass}}
 
   :cljfmt {:indents {facts    [[:block 1]]
                      fact     [[:block 1]]
@@ -28,7 +36,11 @@
                              [lein-doo "0.1.11"]]
                    :dependencies [[org.clojure/test.check "0.10.0-alpha3"]
                                   [org.clojure/clojurescript "1.10.520"]]}
-             :1.8 {:dependencies [[org.clojure/clojure "1.8.0"]]}}
+             :ci   {:pedantic?    :abort
+                    :jvm-opts     ["-Dclojure.main.report=stderr"]
+                    :global-vars  {*assert* true} ;; `ci.release-workflow` relies on runtime assertions
+                    :dependencies [[com.nedap.staffing-solutions/ci.release-workflow "1.3.0-alpha3"]]}
+              :1.8 {:dependencies [[org.clojure/clojure "1.8.0"]]}}
 
   :aliases {"lint"     ["do" "cljfmt" "check," "kibit"]
             "lint-fix" ["do" "cljfmt" "fix," "kibit" "--replace"]

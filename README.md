@@ -1,10 +1,13 @@
 # matcher-combinators
+Fork of https://github.com/nubank/matcher-combinators
 
 Library for creating matcher combinator to compare nested data structures
 
 _current version:_
 
-[![Current Version](https://img.shields.io/clojars/v/nubank/matcher-combinators.svg)](https://clojars.org/nubank/matcher-combinators)
+```
+[com.nedap.staffing-solutions/matcher-combinators "1.0.1"]
+```
 
 _docs:_
 [Found on cljdoc](https://cljdoc.xyz/d/nubank/matcher-combinators/0.3.1/doc/readme)
